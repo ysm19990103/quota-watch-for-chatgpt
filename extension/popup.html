@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quota Watch</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <header><div class="brandmark" aria-hidden="true">◔</div><div><h1>Quota Watch <span class="beta" data-i18n="beta">BETA</span></h1><p data-i18n="subtitle">ChatGPT usage, at a glance</p></div><button id="language-toggle" class="language-button" aria-label="Switch language">中 / EN</button></header>
+  <main>
+    <section class="hero" aria-label="Remaining allowance"><div class="hero-top"><span data-i18n="remaining">remaining</span><span id="freshness" class="status-pill">—</span></div><div class="hero-number"><span id="hero-value">—</span><span id="hero-unit"></span></div><p id="hero-caption"></p><div class="hero-bottom"><span class="dot"></span><span id="seen"></span></div></section>
+    <label class="source-picker"><span data-i18n="tab">Reading from</span><select id="source-select" aria-label="Reading source"><option>—</option></select></label>
+    <div id="cards"></div>
+    <section id="empty" class="empty"><div class="empty-icon" aria-hidden="true">◎</div><h2 data-i18n="empty">Open Usage to read your allowance</h2><p data-i18n="emptyDetail"></p></section>
+    <div class="actions"><button id="open" class="primary" data-i18n="open">Open Usage</button><button id="scan" class="secondary" data-i18n="scan">Read current page</button></div>
+    <section class="monitor"><div class="monitor-head"><div><span id="monitor-state"></span><small id="monitor-frequency"></small></div><button id="monitor-toggle"></button></div><p data-i18n="monitorHint"></p><small data-i18n="monitorDetail"></small></section>
+    <p id="feedback" role="status" aria-live="polite"></p>
+    <details id="preferences"><summary data-i18n="settings">Preferences</summary><div class="preferences">
+      <label class="setting"><span data-i18n="widget"></span><input type="checkbox" id="widget"></label>
+      <label class="setting"><span data-i18n="alerts"></span><input type="checkbox" id="notifications"></label>
+      <label class="setting"><span data-i18n="interval"></span><select id="interval"><option value="1">1 min</option><option value="2">2 min</option><option value="5">5 min</option><option value="10">10 min</option></select></label>
+      <label class="setting"><span data-i18n="threshold"></span><select id="threshold"><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option></select></label>
+      <label class="setting"><span data-i18n="language"></span><select id="language"><option value="auto">Automatic / 自动</option><option value="en">English</option><option value="zh">简体中文</option></select></label>
+      <button id="clear" class="text-button" data-i18n="clear">Clear readings</button>
+    </div></details>
+    <details><summary data-i18n="inspect">How it works</summary><p data-i18n="help"></p><p data-i18n="help2"></p></details>
+    <p class="scope" data-i18n="scope"></p>
+  </main>
+  <footer data-i18n="privacy">Local only · no API key · no chat text stored</footer>
+  <script src="core.js"></script><script src="popup.js"></script>
+</body></html>

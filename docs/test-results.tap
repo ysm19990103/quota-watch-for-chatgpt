@@ -1,0 +1,280 @@
+TAP version 13
+# Subtest: site cannot enable monitoring, edit preferences or clear another tab
+ok 1 - site cannot enable monitoring, edit preferences or clear another tab
+  ---
+  duration_ms: 13.883756
+  type: 'test'
+  ...
+# Subtest: foreign origins, foreign extensions and child frames cannot write usage
+ok 2 - foreign origins, foreign extensions and child frames cannot write usage
+  ---
+  duration_ms: 2.435169
+  type: 'test'
+  ...
+# Subtest: new document discards previous account readings and rejects delayed old document messages
+ok 3 - new document discards previous account readings and rejects delayed old document messages
+  ---
+  duration_ms: 5.284938
+  type: 'test'
+  ...
+# Subtest: one tab cannot replace a different tab reading; payload stores only normalized fields
+ok 4 - one tab cannot replace a different tab reading; payload stores only normalized fields
+  ---
+  duration_ms: 3.571149
+  type: 'test'
+  ...
+# Subtest: monitor reloads only its background Usage page
+ok 5 - monitor reloads only its background Usage page
+  ---
+  duration_ms: 6.304617
+  type: 'test'
+  ...
+# Subtest: automatic monitoring starts in the background and refreshes without a manual START
+ok 6 - automatic monitoring starts in the background and refreshes without a manual START
+  ---
+  duration_ms: 2.79587
+  type: 'test'
+  ...
+# Subtest: closing monitor tab stops scheduled reloads
+ok 7 - closing monitor tab stops scheduled reloads
+  ---
+  duration_ms: 2.300361
+  type: 'test'
+  ...
+# Subtest: watchdog recreates an automatically monitored Usage tab after it is closed
+ok 8 - watchdog recreates an automatically monitored Usage tab after it is closed
+  ---
+  duration_ms: 2.14951
+  type: 'test'
+  ...
+# Subtest: watchdog replaces a monitor that navigates away without reloading that page
+ok 9 - watchdog replaces a monitor that navigates away without reloading that page
+  ---
+  duration_ms: 2.434388
+  type: 'test'
+  ...
+# Subtest: pausing automatic refresh persists and prevents watchdog recreation
+ok 10 - pausing automatic refresh persists and prevents watchdog recreation
+  ---
+  duration_ms: 2.218751
+  type: 'test'
+  ...
+# Subtest: startup adopts an existing exact Usage tab instead of creating a duplicate
+ok 11 - startup adopts an existing exact Usage tab instead of creating a duplicate
+  ---
+  duration_ms: 3.433516
+  type: 'test'
+  ...
+# Subtest: notification preference requires separately granted permission
+ok 12 - notification preference requires separately granted permission
+  ---
+  duration_ms: 1.935645
+  type: 'test'
+  ...
+# Subtest: low-usage notification deduplicates; reset alert does not grant allowance
+ok 13 - low-usage notification deduplicates; reset alert does not grant allowance
+  ---
+  duration_ms: 3.482009
+  type: 'test'
+  ...
+# Subtest: background worker restart reconstructs quota from session storage
+ok 14 - background worker restart reconstructs quota from session storage
+  ---
+  duration_ms: 2.020029
+  type: 'test'
+  ...
+# Subtest: read-current-page round trip can write usage while request is waiting
+ok 15 - read-current-page round trip can write usage while request is waiting
+  ---
+  duration_ms: 2.559171
+  type: 'test'
+  ...
+# Subtest: remaining and used percentages are not inverted
+ok 16 - remaining and used percentages are not inverted
+  ---
+  duration_ms: 4.190279
+  type: 'test'
+  ...
+# Subtest: unknown, conflicting, negative and out-of-range percentages fail closed
+ok 17 - unknown, conflicting, negative and out-of-range percentages fail closed
+  ---
+  duration_ms: 0.256196
+  type: 'test'
+  ...
+# Subtest: requires a quota period or recognized model/feature label
+ok 18 - requires a quota period or recognized model/feature label
+  ---
+  duration_ms: 1.493044
+  type: 'test'
+  ...
+# Subtest: parses EN/ZH quota windows without plan-specific assumptions
+ok 19 - parses EN/ZH quota windows without plan-specific assumptions
+  ---
+  duration_ms: 1.158983
+  type: 'test'
+  ...
+# Subtest: does not invent a fixed reset from the quota window name
+ok 20 - does not invent a fixed reset from the quota window name
+  ---
+  duration_ms: 0.241315
+  type: 'test'
+  ...
+# Subtest: explicit relative reset is anchored to observation time
+ok 21 - explicit relative reset is anchored to observation time
+  ---
+  duration_ms: 0.974252
+  type: 'test'
+  ...
+# Subtest: ISO reset honors timezone; ambiguous labels remain unparsed
+ok 22 - ISO reset honors timezone; ambiguous labels remain unparsed
+  ---
+  duration_ms: 1.10209
+  type: 'test'
+  ...
+# Subtest: passed reset requires new observation, never refills allowance
+ok 23 - passed reset requires new observation, never refills allowance
+  ---
+  duration_ms: 0.31299
+  type: 'test'
+  ...
+# Subtest: old readings age out even while their page is open
+ok 24 - old readings age out even while their page is open
+  ---
+  duration_ms: 0.253713
+  type: 'test'
+  ...
+# Subtest: summary uses lowest fresh observed window and excludes expired windows
+ok 25 - summary uses lowest fresh observed window and excludes expired windows
+  ---
+  duration_ms: 0.391606
+  type: 'test'
+  ...
+# Subtest: validates all untrusted fields at the service worker boundary
+ok 26 - validates all untrusted fields at the service worker boundary
+  ---
+  duration_ms: 0.689403
+  type: 'test'
+  ...
+# Subtest: monitor URL excludes conversations, other sites, fragments and queries
+ok 27 - monitor URL excludes conversations, other sites, fragments and queries
+  ---
+  duration_ms: 1.410042
+  type: 'test'
+  ...
+# Subtest: language and formatting
+ok 28 - language and formatting
+  ---
+  duration_ms: 0.271229
+  type: 'test'
+  ...
+# Subtest: content script extracts distinct usage windows from a split-span layout
+ok 29 - content script extracts distinct usage windows from a split-span layout
+  ---
+  duration_ms: 21.828966
+  type: 'test'
+  ...
+# Subtest: Chinese labels and used-percent display
+ok 30 - Chinese labels and used-percent display
+  ---
+  duration_ms: 6.912409
+  type: 'test'
+  ...
+# Subtest: does not scan conversation content, code or user input
+ok 31 - does not scan conversation content, code or user input
+  ---
+  duration_ms: 14.164489
+  type: 'test'
+  ...
+# Subtest: reads labelled usage dialog on a conversation page without reading conversation
+ok 32 - reads labelled usage dialog on a conversation page without reading conversation
+  ---
+  duration_ms: 6.66019
+  type: 'test'
+  ...
+# Subtest: can read an explicitly labelled Work usage sidebar widget
+ok 33 - can read an explicitly labelled Work usage sidebar widget
+  ---
+  duration_ms: 6.071043
+  type: 'test'
+  ...
+# Subtest: ignores hidden cards and never infers a naked progress bar direction
+ok 34 - ignores hidden cards and never infers a naked progress bar direction
+  ---
+  duration_ms: 8.497729
+  type: 'test'
+  ...
+# Subtest: conflicting duplicate quota cards fail closed
+ok 35 - conflicting duplicate quota cards fail closed
+  ---
+  duration_ms: 6.031015
+  type: 'test'
+  ...
+# Subtest: unchanged DOM rescans preserve observation time and relative reset anchor
+ok 36 - unchanged DOM rescans preserve observation time and relative reset anchor
+  ---
+  duration_ms: 9.438428
+  type: 'test'
+  ...
+# Subtest: new displayed value produces a new observation
+ok 37 - new displayed value produces a new observation
+  ---
+  duration_ms: 9.321566
+  type: 'test'
+  ...
+# Subtest: client-side reset countdown ticks do not make an old quota fresh
+ok 38 - client-side reset countdown ticks do not make an old quota fresh
+  ---
+  duration_ms: 7.081528
+  type: 'test'
+  ...
+# Subtest: floating widget is isolated and contains no captured conversation content
+ok 39 - floating widget is isolated and contains no captured conversation content
+  ---
+  duration_ms: 5.718255
+  type: 'test'
+  ...
+# Subtest: SPA navigation clears the previous view before any new reading
+ok 40 - SPA navigation clears the previous view before any new reading
+  ---
+  duration_ms: 5.854435
+  type: 'test'
+  ...
+# Subtest: popup has an honest empty state and no invented limit
+ok 41 - popup has an honest empty state and no invented limit
+  ---
+  duration_ms: 15.850467
+  type: 'test'
+  ...
+# Subtest: popup renders percentages, source, meter and reset
+ok 42 - popup renders percentages, source, meter and reset
+  ---
+  duration_ms: 27.396758
+  type: 'test'
+  ...
+# Subtest: stale and expired values remain history only
+ok 43 - stale and expired values remain history only
+  ---
+  duration_ms: 5.582425
+  type: 'test'
+  ...
+# Subtest: language toggle, monitor switch and clear button call the right extension actions
+ok 44 - language toggle, monitor switch and clear button call the right extension actions
+  ---
+  duration_ms: 7.286169
+  type: 'test'
+  ...
+# Subtest: denied notification permission leaves alerts disabled
+ok 45 - denied notification permission leaves alerts disabled
+  ---
+  duration_ms: 3.131713
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 665.590168

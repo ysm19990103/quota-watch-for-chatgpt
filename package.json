@@ -1,0 +1,14 @@
+{
+  "name": "quota-watch-for-chatgpt",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Local Chrome extension for ChatGPT-reported usage allowances",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.12",
+    "playwright": "1.62.1"
+  }
+}

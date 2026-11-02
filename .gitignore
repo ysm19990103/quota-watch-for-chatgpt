@@ -1,0 +1,16 @@
+node_modules/
+playwright-report/
+test-results/
+.DS_Store
+*.log
+*.zip
+qa/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json

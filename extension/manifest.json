@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Quota Watch for ChatGPT",
+  "short_name": "Quota Watch",
+  "version": "0.2.0",
+  "description": "See ChatGPT-reported remaining usage with automatic background refresh. Local only; no API key.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "alarms"],
+  "optional_permissions": ["notifications"],
+  "host_permissions": ["https://chatgpt.com/*"],
+  "background": {"service_worker": "background.js"},
+  "action": {"default_popup": "popup.html", "default_title": "Quota Watch · remaining ChatGPT usage", "default_icon": {"16":"icons/16.png","32":"icons/32.png"}},
+  "icons": {"16":"icons/16.png","32":"icons/32.png","48":"icons/48.png","128":"icons/128.png"},
+  "content_scripts": [{"matches":["https://chatgpt.com/*"],"js":["core.js","content.js"],"run_at":"document_idle","all_frames":false}],
+  "content_security_policy": {"extension_pages":"script-src 'self'; object-src 'none'; base-uri 'none'"}
+}
