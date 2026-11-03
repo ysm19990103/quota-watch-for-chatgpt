@@ -100,6 +100,16 @@ test('repeated initialization retains a new monitor before its first navigation 
  assert.equal(h.tabs.size,1);assert.equal(h.data.session.state.monitor.tabId,id);
  await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[]);
 });
+test('tracked loading monitor survives a transient snapshot with no exposed URL',async()=>{
+ const h=harness();await h.ready();const create=h.chrome.tabs.create;
+ h.chrome.tabs.create=async opts=>{const tab=await create(opts);delete tab.url;tab.status='loading';return structuredClone(tab);};
+ await h.call({type:'START'},h.ui);const id=h.data.session.state.monitor.tabId;
+ await vm.runInContext('init()',h.ctx);
+ assert.equal(h.tabs.size,1);assert.equal(h.data.session.state.monitor.tabId,id);
+ await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[]);
+ h.tabs.get(id).url='https://chatgpt.com/c/fictional';h.tabs.get(id).status='complete';
+ h.chrome.tabs.onUpdated.listeners[0](id,{url:h.tabs.get(id).url});await h.ready();assert.equal(h.data.session.state.monitor,null);
+});
 test('notification preference requires separately granted permission',async()=>{
  const h=harness();await h.ready();await h.call({type:'SETTINGS',settings:{notifications:true}},h.ui);assert.equal(h.data.local.settings.notifications,false);
  h.allow();await h.call({type:'SETTINGS',settings:{notifications:true}},h.ui);assert.equal(h.data.local.settings.notifications,true);

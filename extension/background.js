@@ -22,7 +22,13 @@ async function ensureMonitor(s,p){
   if(!p.autoMonitor){await clearMonitor(s);return {tab:null,created:false};}
   let tab=null,created=false;
   if(s.monitor){
-    try{const candidate=await chrome.tabs.get(s.monitor.tabId);if(monitorTab(candidate))tab=candidate;}catch{}
+    try{
+      const candidate=await chrome.tabs.get(s.monitor.tabId);
+      // Chrome can briefly omit both URL fields before a newly created tab's
+      // first commit. Retain only the already tracked loading tab in that gap;
+      // this is not permission to reload it or adopt an unrelated blank tab.
+      if(monitorTab(candidate)||(candidate.status==='loading'&&!candidate.url&&!candidate.pendingUrl))tab=candidate;
+    }catch{}
   }
   if(!tab){
     s.monitor=null;
