@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -27,3 +27,31 @@ jobs:
           node --check extension/content.js
           node --check extension/background.js
           node --check extension/popup.js
+          node --check tests/browser.cjs
+
+  browser:
+    name: Synthetic Chromium extension integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install pinned Playwright Chromium and system dependencies
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Run extension against isolated synthetic pages
+        run: npm run test:browser
+        env:
+          QW_REPORT: test-results/browser/report.json
+          QW_SCREENSHOTS: test-results/browser/screenshots
+      - name: Upload synthetic browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-chromium-evidence
+          path: test-results/browser/
+          if-no-files-found: warn
+          retention-days: 14

@@ -17,17 +17,18 @@ async function configureMonitorAlarm(p){
   }
 }
 async function clearMonitor(s){s.monitor=null;await chrome.alarms.clear('monitor');}
+function monitorTab(tab){return Q.isSafeMonitor(tab.pendingUrl||tab.url);}
 async function ensureMonitor(s,p){
   if(!p.autoMonitor){await clearMonitor(s);return {tab:null,created:false};}
   let tab=null,created=false;
   if(s.monitor){
-    try{const candidate=await chrome.tabs.get(s.monitor.tabId);if(Q.isSafeMonitor(candidate.url))tab=candidate;}catch{}
+    try{const candidate=await chrome.tabs.get(s.monitor.tabId);if(monitorTab(candidate))tab=candidate;}catch{}
   }
   if(!tab){
     s.monitor=null;
     try{
       const candidates=await chrome.tabs.query({url:[`${Q.USAGE_URL}*`,'https://chatgpt.com/settings/usage*']});
-      tab=candidates.filter(candidate=>Q.isSafeMonitor(candidate.url)).sort((a,b)=>Number(a.active)-Number(b.active))[0]||null;
+      tab=candidates.filter(monitorTab).sort((a,b)=>Number(a.active)-Number(b.active))[0]||null;
     }catch{}
     if(!tab){tab=await chrome.tabs.create({url:Q.USAGE_URL,active:false});created=true;}
     s.monitor={tabId:tab.id};
@@ -138,9 +139,16 @@ chrome.alarms.onAlarm.addListener(alarm=>serialized(async()=>{
   const s=await state(),p=await prefs();
   if(alarm.name==='tick')await ensureMonitor(s,p);
   if(alarm.name==='monitor'&&p.autoMonitor){
-    const result=await ensureMonitor(s,p),tab=result.tab;
-    if(tab&&!result.created&&!tab.active&&tab.status!=='loading')await chrome.tabs.reload(tab.id);
-    else if(tab&&!result.created&&tab.active)tabSend(tab.id,{type:'SCAN'}).catch(()=>{});
+    const result=await ensureMonitor(s,p);
+    if(result.tab&&!result.created){
+      // ensureMonitor awaits alarm setup. Its Tab is a snapshot that may now
+      // describe a conversation or an in-flight navigation; recheck at use.
+      let tab;try{tab=await chrome.tabs.get(result.tab.id);}catch{}
+      if(tab&&Q.isSafeMonitor(tab.url)&&!tab.pendingUrl&&tab.status!=='loading'){
+        if(!tab.active)await chrome.tabs.reload(tab.id);
+        else tabSend(tab.id,{type:'SCAN'}).catch(()=>{});
+      }
+    }
   }else if(alarm.name==='monitor'){
     await clearMonitor(s);
   }

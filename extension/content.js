@@ -13,6 +13,10 @@
   function textOf(el){
     if(el.matches(EXCLUDE)||el.closest(EXCLUDE))return '';
     const clone=el.cloneNode(true);
+    // Check visibility in the live tree. Detached clones lose stylesheet and
+    // ancestor visibility, so a visible wrapper could otherwise expose hidden cards.
+    const originalChildren=[...el.querySelectorAll('*')],clonedChildren=[...clone.querySelectorAll('*')];
+    for(let i=0;i<originalChildren.length;i++)if(!visible(originalChildren[i]))clonedChildren[i].remove();
     for(const n of clone.querySelectorAll(EXCLUDE+',script,style,svg,[hidden],[aria-hidden="true"]'))n.remove();
     // Keep card lines independent so reset labels cannot absorb surrounding text.
     for(const n of clone.querySelectorAll('p,div,span,li,h1,h2,h3,h4,h5,h6,br,time')){n.appendChild(document.createTextNode('\n'));}
@@ -57,8 +61,8 @@
         const old=previous.get(row.id);
         if(old?.fingerprint===fingerprint)row=old.row;
         const existing=out.get(row.id);
-        if(existing && Math.abs(existing.row.remaining-row.remaining)>0.11){out.set(row.id,{conflict:true});continue;}
         if(existing?.conflict)continue;
+        if(existing && Math.abs(existing.row.remaining-row.remaining)>0.11){out.set(row.id,{conflict:true});continue;}
         if(!existing||fingerprint.length<existing.fingerprint.length)out.set(row.id,{row,fingerprint});
       }
     }
@@ -68,7 +72,9 @@
     if(stopped)return false;
     if(location.href!==route){route=location.href;previous.clear();rows=[];lastSignature='';await send({type:'HELLO'});}
     const found=readCards();lastScan=Date.now();
-    if(found.size){
+    // A removed, hidden or contradictory card no longer supports the previous
+    // reading. Publish the empty result instead of keeping it fresh-looking.
+    if(found.size||rows.length){
       previous=found;rows=[...found.values()].map(v=>v.row).slice(0,12);
       const signature=JSON.stringify(rows);
       if(signature!==lastSignature||force){lastSignature=signature;await send({type:'OBSERVE',rows});}
@@ -104,7 +110,7 @@
     const hello=await send({type:'HELLO'});if(!hello||stopped)return;settings={...Q.DEFAULTS,...hello.settings};
     await scan();
     observer=new MutationObserver(mutations=>{if(mutations.some(m=>!host?.contains(m.target)&&m.target!==host && (m.type!=='childList'||[...m.addedNodes,...m.removedNodes].some(n=>n!==host))))schedule();});
-    observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['aria-valuetext','aria-valuenow','hidden','datetime']});
+    observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['aria-valuetext','aria-valuenow','aria-hidden','hidden','class','style','datetime']});
     timer=setInterval(()=>scan().catch(()=>{}),15000);
     window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);window.addEventListener('hashchange',schedule);
   })().catch(()=>{});

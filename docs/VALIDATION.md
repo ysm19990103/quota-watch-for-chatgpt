@@ -1,27 +1,43 @@
-# Validation — 0.2.0 beta
+# Validation — Chromium integration follow-up
 
-Date: 2 November 2026. All data used in tests is fictional.
+Date: 3 November 2026. All data used in tests is fictional. The extension version remains 0.2.0; this work is proposed in a pull request, not a release.
 
 ## Completed
 
-`npm test` completed with **45 passed, 0 failed** after the final functional changes.
+`npm test` completed with **51 passed, 0 failed** after the final functional changes.
 
 | Layer | Checks | What was checked |
 | --- | ---: | --- |
 | Parser / pure logic | 13 | Remaining vs used semantics; EN/ZH; invalid/conflicting percentages; supported quota labels; relative and timezone-qualified resets; stale/expired values; untrusted-field validation; safe monitor URL matching. |
-| Service worker, mocked Chrome APIs | 15 | Message sender restrictions; per-document and tab isolation; safe monitor reload policy; automatic startup; close/navigation recovery; duplicate-tab avoidance; persistent pause; optional permission gating; alert deduplication; state restoration; scan round-trip deadlock regression. |
-| Shipped content script, in-memory DOM | 12 | Split-span layouts; Chinese cards; chat/input/code exclusion; usage dialogs; explicitly labelled sidebar widgets; hidden cards; ambiguous bars; conflicting cards; unchanged reading timestamps; client-side countdown ticks; changed readings; isolated widget; SPA navigation. Some checks cover more than one scenario. |
+| Service worker, mocked Chrome APIs | 18 | Message sender restrictions; per-document and tab isolation; safe monitor reload policy; automatic startup; close/navigation recovery; duplicate-tab avoidance; persistent pause; optional permission gating; alert deduplication; state restoration; scan round-trip deadlock regression. |
+| Shipped content script, in-memory DOM | 15 | Split-span layouts; Chinese cards; chat/input/code exclusion; usage dialogs; explicitly labelled sidebar widgets; hidden cards; ambiguous bars; conflicting cards; unchanged reading timestamps; client-side countdown ticks; changed readings; isolated widget; SPA navigation. Some checks cover more than one scenario. |
 | Shipped popup script, in-memory DOM | 5 | Empty state; quota cards/meters; reset display; stale/expired presentation; translation and actions; denied notification permission. |
 
 The production scripts pass JavaScript syntax checks. The Manifest V3 package's declared scripts, popup and all icon sizes are present. Runtime code has no third-party dependencies, remote scripts, analytics, cookies access or model/API calls.
 
+## Chromium integration
+
+The `browser` CI job installs the repository-pinned Playwright 1.62.1 and its bundled Chromium with `npx --no-install playwright install --with-deps chromium`, then executes `npm run test:browser` on Ubuntu 24.04 / Node.js 22. Browser evidence is retained for 14 days as `synthetic-chromium-evidence`, including a JSON report and popup screenshots. The report records the exact browser version/revision, Node and Playwright versions, runner image, commit, run URL, scenario durations and any failure.
+
+CI results for this change are pending. Local unit tests pass; the local browser download returned an invalid/truncated archive, so no local Chromium success is claimed.
+
+### Privacy boundary and coverage
+
+Every run creates a new temporary browser profile. A loopback proxy that never forwards requests is active before browser launch, covering the startup tab before Playwright interception is ready. Only exact synthetic Usage and conversation URLs are fulfilled; other page requests are aborted. No existing browser profile, account, credential, cookie store or private conversation is used. The temporary synthetic profile is reused solely to test preference persistence across browser restart, then deleted.
+
+The harness loads the actual unpacked extension and checks its Manifest V3 worker, Chrome messaging, global/tab badge values, popup controls, one-minute periodic refresh, active-tab protection, closed/navigated monitor recovery, pause/resume, preference persistence and session-data clearing across a full browser restart. Recovery uses real Chrome alarm events with shortened test schedules; the one-minute refresh scenario waits for the extension's unmodified selected interval. The initial bootstrap page reload is test setup, not evidence of automatic refresh. The popup is loaded as an extension page; browser toolbar geometry and OS notification delivery are not tested.
+
+### Regressions corrected
+
+- Publish empty observations when previously valid cards disappear or become contradictory; otherwise old values remained current until stale.
+- Reject three or more conflicting duplicate cards without dereferencing an already-rejected row.
+- Exclude CSS-hidden descendants when a visible ancestor is parsed, and rescan on visibility-related attribute changes.
+- Re-read the current tab immediately before a scheduled reload, rejecting pending navigation and unsafe URLs; the earlier snapshot could become stale during alarm setup.
+- Retain an in-flight exact Usage tab during repeated initialization, avoiding duplicate startup monitors before the first navigation commits.
+
 ## Not verified
 
-**Real Chrome extension integration did not run successfully.** Chrome startup was blocked by a process/socket restriction. The request to run outside that sandbox was rejected by the environment's approval policy. No real-browser success is claimed.
-
-`tests/browser.cjs` is supplied for independent verification with Playwright's bundled Chromium on a permitted machine. It intercepts all ChatGPT page navigation with fictional fixtures, including a usage page and a conversation page. The intended checks include extension injection, toolbar badges, popup interactions, text mutations, monitor navigation guards and absence of runtime errors.
-
-The automated DOM tests do not prove actual Chrome layout, host permissions, installation, notification delivery or current ChatGPT account compatibility. No signed-in account or live usage endpoint was inspected. Page selectors and labels may vary by rollout, locale, plan or workspace. A manual smoke test on the target account is required before treating this beta as verified for that account.
+Synthetic Chromium success does not establish compatibility with a signed-in live ChatGPT account. No live usage endpoint or personal session is inspected. Page selectors and labels may vary by rollout, locale, plan or workspace. Target-account smoke tests and OS notification delivery remain separate manual checks.
 
 ## Manual smoke test
 
