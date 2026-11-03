@@ -112,8 +112,11 @@ async function monitor() {
   return eventually(async () => {
     const value = await state();
     if (!value?.monitor) return null;
-    return worker.evaluate(async id => { try { return await chrome.tabs.get(id); } catch { return null; } }, value.monitor.tabId);
-  }, 'monitor tab exists');
+    const tab = await worker.evaluate(async id => { try { return await chrome.tabs.get(id); } catch { return null; } }, value.monitor.tabId);
+    // A new tab may exist before Chrome exposes its committed URL. The worker
+    // handles that interval; UI assertions must wait for the actual navigation.
+    return tab?.url === usageURL ? tab : null;
+  }, 'monitor tab commits the exact Usage URL');
 }
 async function openPopup() {
   popup = await ctx.newPage();
