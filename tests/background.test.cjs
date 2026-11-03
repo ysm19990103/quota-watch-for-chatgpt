@@ -54,6 +54,22 @@ test('automatic monitoring starts in the background and refreshes without a manu
  assert.equal(h.tabs.size,1);const id=h.data.session.state.monitor.tabId;assert.equal(h.tabs.get(id).url,Q.USAGE_URL);assert.equal(h.tabs.get(id).active,false);assert.equal(h.alarms.get('monitor').periodInMinutes,1);
  h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[id]);
 });
+test('monitor rechecks a tab snapshot after asynchronous alarm configuration',async()=>{
+ const h=harness({settings:{autoMonitor:true}});await h.ready();const id=h.data.session.state.monitor.tabId;
+ const getTab=h.chrome.tabs.get;h.chrome.tabs.get=async id=>structuredClone(await getTab(id));
+ const getAlarm=h.chrome.alarms.get;let navigated=false;
+ h.chrome.alarms.get=async name=>{
+  if(name==='monitor'&&!navigated){navigated=true;h.tabs.get(id).url='https://chatgpt.com/c/fictional';h.chrome.tabs.onUpdated.listeners[0](id,{url:h.tabs.get(id).url});}
+  return getAlarm(name);
+ };
+ await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();
+ assert.deepEqual(h.reloads,[]);
+});
+test('monitor does not reload a tab with a pending conversation navigation',async()=>{
+ const h=harness({settings:{autoMonitor:true}});await h.ready();const id=h.data.session.state.monitor.tabId;
+ h.tabs.get(id).pendingUrl='https://chatgpt.com/c/fictional';
+ await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[]);
+});
 test('closing monitor tab stops scheduled reloads',async()=>{
  const h=harness();await h.ready();await h.call({type:'START'},h.ui);const id=h.data.session.state.monitor.tabId;
  h.tabs.delete(id);h.chrome.tabs.onRemoved.listeners[0](id);await h.ready();assert.equal(h.data.session.state.monitor,null);assert.equal(h.alarms.has('monitor'),false);
@@ -75,6 +91,24 @@ test('pausing automatic refresh persists and prevents watchdog recreation',async
 test('startup adopts an existing exact Usage tab instead of creating a duplicate',async()=>{
  const existing={id:7,url:'https://chatgpt.com/settings/usage',active:false,status:'complete'};const h=harness({settings:{autoMonitor:true},tabs:[existing]});await h.ready();
  assert.equal(h.tabs.size,1);assert.equal(h.data.session.state.monitor.tabId,7);assert.ok(h.alarms.has('monitor'));
+});
+test('repeated initialization retains a new monitor before its first navigation commits',async()=>{
+ const h=harness();await h.ready();const create=h.chrome.tabs.create;
+ h.chrome.tabs.create=async opts=>{const tab=await create(opts);Object.assign(tab,{url:'',pendingUrl:opts.url,status:'loading'});return structuredClone(tab);};
+ await h.call({type:'START'},h.ui);const id=h.data.session.state.monitor.tabId;
+ await vm.runInContext('init()',h.ctx);
+ assert.equal(h.tabs.size,1);assert.equal(h.data.session.state.monitor.tabId,id);
+ await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[]);
+});
+test('tracked loading monitor survives a transient snapshot with no exposed URL',async()=>{
+ const h=harness();await h.ready();const create=h.chrome.tabs.create;
+ h.chrome.tabs.create=async opts=>{const tab=await create(opts);delete tab.url;tab.status='loading';return structuredClone(tab);};
+ await h.call({type:'START'},h.ui);const id=h.data.session.state.monitor.tabId;
+ await vm.runInContext('init()',h.ctx);
+ assert.equal(h.tabs.size,1);assert.equal(h.data.session.state.monitor.tabId,id);
+ await h.chrome.alarms.onAlarm.listeners[0]({name:'monitor'});await h.ready();assert.deepEqual(h.reloads,[]);
+ h.tabs.get(id).url='https://chatgpt.com/c/fictional';h.tabs.get(id).status='complete';
+ h.chrome.tabs.onUpdated.listeners[0](id,{url:h.tabs.get(id).url});await h.ready();assert.equal(h.data.session.state.monitor,null);
 });
 test('notification preference requires separately granted permission',async()=>{
  const h=harness();await h.ready();await h.call({type:'SETTINGS',settings:{notifications:true}},h.ui);assert.equal(h.data.local.settings.notifications,false);

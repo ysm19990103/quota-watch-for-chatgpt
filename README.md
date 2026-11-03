@@ -2,7 +2,7 @@
 
 A local Chrome extension that puts ChatGPT-reported remaining usage in your toolbar and on the page. Version **0.2.0 — beta**.
 
-**This release passed 45 automated parser, service-worker and in-memory DOM checks. Real Chrome extension loading and live-account compatibility have not been verified.** A browser test harness is included; the build environment blocked Chrome from starting.
+**The current source passed 53 Node checks and 17 real Chromium scenarios using synthetic pages. Signed-in live-account compatibility remains unverified.** Exact environment, results and CI evidence are recorded in [docs/VALIDATION.md](docs/VALIDATION.md). This follow-up keeps the extension at version 0.2.0 pending merge and release approval.
 
 ## Install in Chrome (macOS / Windows / Linux)
 
@@ -72,16 +72,16 @@ npm ci --ignore-scripts
 npm test
 ```
 
-There are 45 passing checks. See `docs/VALIDATION.md` for coverage and the unverified browser boundary.
+There are 53 passing Node checks and 17 passing synthetic Chromium scenarios. See [docs/VALIDATION.md](docs/VALIDATION.md) for coverage, CI evidence and the live-account testing boundary.
 
 For a real browser integration run on a machine that permits Chromium processes:
 
 ```sh
-npx playwright install chromium
+npx --no-install playwright install --with-deps chromium
 npm run test:browser
 ```
 
-The browser harness uses intercepted fictional ChatGPT pages and a fresh temporary browser profile. It does not use a personal account. `CHROMIUM_EXECUTABLE` can point to a compatible Chromium-for-Testing executable if needed. A current branded Chrome executable may refuse extension-loading command-line flags; use Playwright's bundled Chromium.
+The browser harness serves fictional ChatGPT pages from a local HTTPS fixture server and uses a fresh temporary browser profile. It does not use a personal account. Use the repository-pinned Playwright and its bundled Chromium. OpenSSL must be available on `PATH` for a temporary local test certificate; it is never packaged with the extension. The test network proxy serves only the exact synthetic pages and never forwards traffic to ChatGPT or another external service.
 
 Files: `core.js` handles parsing/validation; `content.js` reads scoped usage DOM and renders the panel; `background.js` isolates session state and manages monitoring/alerts; `popup.*` implements the popup. The extension uses Manifest V3 and requires Chrome 120+.
 

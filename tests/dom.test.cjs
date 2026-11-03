@@ -42,8 +42,27 @@ test('can read an explicitly labelled Work usage sidebar widget',async()=>{
 test('ignores hidden cards and never infers a naked progress bar direction',async()=>{
  const h=await run('<main><section hidden><h2>Weekly</h2><p>1% remaining</p></section><section aria-hidden="true"><h2>Weekly</h2><p>2% remaining</p></section><section><h2>5 hour limit</h2><div role="progressbar" aria-valuenow="70">70%</div></section></main>');assert.equal(h.rows().length,0);
 });
+test('visible wrappers cannot expose CSS-hidden usage cards',async()=>{
+ for(const style of ['display:none','visibility:hidden']){
+  const h=await run(`<main><section style="${style}"><h2>Weekly</h2><p>1% remaining</p></section></main>`);
+  assert.deepEqual(h.rows(),[],style);
+ }
+});
 test('conflicting duplicate quota cards fail closed',async()=>{
  const h=await run('<main><section><h2>Weekly</h2><p>55% remaining</p></section><section><h2>Weekly</h2><p>67% remaining</p></section></main>');assert.equal(h.rows().length,0);
+});
+test('previous readings clear when usage cards disappear or become conflicting',async()=>{
+ for(const replacement of ['', '<section><h2>Weekly</h2><p>55% remaining</p></section><section><h2>Weekly</h2><p>67% remaining</p></section>']){
+  const h=await run(cards);assert.equal(h.rows().length,2);
+  h.document.querySelector('main').innerHTML=replacement;
+  const result=await h.scan();assert.equal(result.found,false);
+  assert.deepEqual(h.rows(),[]);assert.equal(h.messages.at(-1).type,'OBSERVE');
+ }
+});
+test('three contradictory cards reject the window without throwing or keeping old readings',async()=>{
+ const h=await run(cards);
+ h.document.querySelector('main').innerHTML=[20,40,60].map(n=>`<section><h2>Weekly</h2><p>${n}% remaining</p></section>`).join('');
+ const result=await h.scan();assert.equal(result.found,false);assert.deepEqual(h.rows(),[]);
 });
 test('unchanged DOM rescans preserve observation time and relative reset anchor',async()=>{
  const h=await run(cards);const before=h.rows();h.now(Date.parse('2026-11-02T08:03:00Z'));await h.scan();assert.deepEqual(h.rows(),before);
