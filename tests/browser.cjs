@@ -14,7 +14,8 @@ const chatURL = 'https://chatgpt.com/c/fictional';
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'quota-watch-synthetic-'));
 const reportPath = process.env.QW_REPORT || path.resolve(__dirname, '../test-results/browser/report.json');
 const screenshotDir = process.env.QW_SCREENSHOTS;
-const checks = [], errors = [], requests = new Map();
+const checks = [], errors = [], requests = new Map(), browserEvents = [];
+let diagnostics = null;
 let ctx, worker, popup, extensionId, currentCheck, failure, blockedConnections = 0, weekly = 18;
 const startedAt = new Date().toISOString();
 const environment = {
@@ -45,7 +46,7 @@ function writeReport() {
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, JSON.stringify({
     status: failure ? 'failed' : 'passed', startedAt, finishedAt: new Date().toISOString(),
-    environment, passed: checks.length, checks, failure, errors,
+    environment, passed: checks.length, checks, failure, errors, diagnostics, browserEvents,
     network: { policy: 'Deny-all loopback proxy active before browser startup; exact synthetic URLs fulfilled by Playwright; all other page requests aborted', blockedConnections, fixtureRequests: Object.fromEntries(requests) },
     limitations: ['Synthetic UI fixtures only; no signed-in account or live ChatGPT compatibility tested.', 'OS notification delivery and browser toolbar geometry are outside this harness; badge values are inspected through the real chrome.action API.'],
   }, null, 2) + '\n');
@@ -79,6 +80,9 @@ async function launch() {
   const watchPage = page => page.on('pageerror', error => errors.push(error.message));
   ctx.on('page', watchPage);
   ctx.pages().forEach(watchPage);
+  ctx.on('requestfailed', request => {
+    if ([usageURL, chatURL].includes(request.url())) browserEvents.push({ type: 'requestfailed', url: request.url(), error: request.failure()?.errorText });
+  });
   ctx.on('console', message => { if (message.type() === 'error' && message.location().url.startsWith('chrome-extension://')) errors.push(message.text()); });
   await ctx.route('**/*', async route => {
     const request = route.request(), url = request.url();
@@ -89,12 +93,18 @@ async function launch() {
   });
   worker = ctx.serviceWorkers().find(item => item.url().endsWith('/background.js')) || await ctx.waitForEvent('serviceworker', { predicate: item => item.url().endsWith('/background.js'), timeout: 15000 });
   extensionId = new URL(worker.url()).host;
+  await worker.evaluate(() => {
+    globalThis.__qwTestTabEvents = [];
+    chrome.tabs.onCreated.addListener(tab => globalThis.__qwTestTabEvents.push({ type: 'created', id: tab.id, url: tab.url, pendingUrl: tab.pendingUrl, status: tab.status }));
+    chrome.tabs.onUpdated.addListener((id, change, tab) => globalThis.__qwTestTabEvents.push({ type: 'updated', id, change, url: tab.url, pendingUrl: tab.pendingUrl, status: tab.status }));
+  });
   const cdp = await ctx.newCDPSession(ctx.pages()[0]);
   const version = await cdp.send('Browser.getVersion');
   environment.chromium = version.product;
   environment.browserRevision = version.revision;
   environment.javascriptVersion = version.jsVersion;
   await cdp.detach();
+  console.log('BROWSER_ENVIRONMENT ' + JSON.stringify(environment));
 }
 async function state() { return worker.evaluate(async () => (await chrome.storage.session.get('state')).state); }
 async function prefs() { return worker.evaluate(async () => (await chrome.storage.local.get('settings')).settings); }
@@ -337,7 +347,19 @@ async function snapshot(label) {
     await snapshot('popup-zh-after-restart');
   });
   await check('no extension or fixture JavaScript errors', async () => assert.deepEqual(errors, []));
-})().catch(error => {
+})().catch(async error => {
+  try {
+    diagnostics = await worker?.evaluate(async () => {
+      const { state } = await chrome.storage.session.get('state');
+      return {
+        monitor: state?.monitor,
+        tabs: (await chrome.tabs.query({})).map(tab => ({ id: tab.id, url: tab.url, pendingUrl: tab.pendingUrl, active: tab.active, status: tab.status })),
+        observations: Object.fromEntries(Object.entries(state?.tabs || {}).map(([id, tab]) => [id, { rowCount: tab.rows.length, lastScan: tab.lastScan }])),
+        events: globalThis.__qwTestTabEvents,
+      };
+    });
+    console.error('SYNTHETIC_BROWSER_DIAGNOSTICS ' + JSON.stringify(diagnostics));
+  } catch (diagnosticError) { diagnostics = { unavailable: diagnosticError.message }; }
   failure = { check: currentCheck, message: error.message, stack: error.stack };
   console.error(error);
   process.exitCode = 1;
