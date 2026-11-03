@@ -86,6 +86,9 @@ async function launch() {
   ctx.on('console', message => { if (message.type() === 'error' && message.location().url.startsWith('chrome-extension://')) errors.push(message.text()); });
   await ctx.route('**/*', async route => {
     const request = route.request(), url = request.url();
+    // The unpacked extension's local HTML/JS/CSS must load normally. These
+    // resources never go to the network; only external requests are denied.
+    if (extensionId && url.startsWith(`chrome-extension://${extensionId}/`)) return route.continue();
     if (request.method() === 'GET' && (url === usageURL || url === chatURL)) {
       requests.set(url, (requests.get(url) || 0) + 1);
       await route.fulfill({ contentType: 'text/html', body: url === usageURL ? usageFixture() : chatFixture });
@@ -332,6 +335,7 @@ async function snapshot(label) {
     for (const page of ctx.pages()) if (page !== popup) await page.close();
     await ctx.close(); ctx = null;
     await launch(); await openPopup();
+    await eventually(async () => (await state())?.tabs, 'fresh session initialized after browser restart');
     assert.equal(await popup.locator('#monitor-state').textContent(), '后台自动刷新已暂停');
     assert.equal(await popup.locator('#interval').inputValue(), '5');
     assert.equal(await popup.locator('#language').inputValue(), 'zh');
