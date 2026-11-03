@@ -1,0 +1,111 @@
+{
+  "status": "passed",
+  "startedAt": "2026-11-03T05:54:14.131Z",
+  "finishedAt": "2026-11-03T05:55:22.734Z",
+  "environment": {
+    "node": "v22.23.4",
+    "playwright": "1.62.1",
+    "platform": "linux",
+    "architecture": "x64",
+    "osRelease": "7.0.0-1017-azure",
+    "osVersion": "#17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026",
+    "runnerImage": "ubuntu24",
+    "runnerImageVersion": "20261026.354.1",
+    "commit": "c9b648eda034b920da92ccabca840616884220f4",
+    "runURL": "https://github.com/ysm19990103/quota-watch-for-chatgpt/actions/runs/41586546949",
+    "mode": "bundled Chromium, headless, unpacked Manifest V3 extension",
+    "profile": "new temporary profile; reused only for this synthetic restart test",
+    "chromium": "Chrome/151.0.7922.34",
+    "browserRevision": "@782af9cb30a53f54487e5d2e44738645a8ec457c",
+    "javascriptVersion": "15.1.206.8"
+  },
+  "passed": 17,
+  "checks": [
+    {
+      "name": "unpacked extension installs and starts its actual Manifest V3 worker",
+      "durationMs": 3012
+    },
+    {
+      "name": "startup creates a separate inactive Usage tab without a user action",
+      "durationMs": 366
+    },
+    {
+      "name": "content script reads two visible cards and reset times through Chrome messaging",
+      "durationMs": 17
+    },
+    {
+      "name": "DOM text mutations update popup and real global/tab toolbar badge values",
+      "durationMs": 376
+    },
+    {
+      "name": "conflicting or removed cards invalidate previously fresh observations",
+      "durationMs": 1465
+    },
+    {
+      "name": "popup rescan round trip completes without renewing unchanged timestamps",
+      "durationMs": 51
+    },
+    {
+      "name": "English/Chinese popup controls and refresh preference writes work",
+      "durationMs": 504
+    },
+    {
+      "name": "synthetic conversation text never becomes a quota observation",
+      "durationMs": 107
+    },
+    {
+      "name": "selected one-minute alarm automatically reloads background Usage and updates readings",
+      "durationMs": 59829
+    },
+    {
+      "name": "active Usage tab is scanned without reloading",
+      "durationMs": 225
+    },
+    {
+      "name": "watchdog recreates a closed monitor via a real Chrome alarm",
+      "durationMs": 345
+    },
+    {
+      "name": "navigated monitor is never refreshed as a conversation and watchdog replaces it",
+      "durationMs": 504
+    },
+    {
+      "name": "pause cancels refresh and survives watchdog events and popup reopen",
+      "durationMs": 362
+    },
+    {
+      "name": "stale readings leave the headline and clear removes all observed rows",
+      "durationMs": 167
+    },
+    {
+      "name": "browser restart preserves interval/language/pause preferences and clears session readings",
+      "durationMs": 615
+    },
+    {
+      "name": "resume after restart creates a Usage tab and restores the selected interval",
+      "durationMs": 242
+    },
+    {
+      "name": "no extension or fixture JavaScript errors",
+      "durationMs": 0
+    }
+  ],
+  "errors": [],
+  "diagnostics": null,
+  "browserEvents": [],
+  "network": {
+    "policy": "Local HTTPS fixture transport active before startup; CONNECT chatgpt.com:443 terminates only at a loopback fixture server; all other hosts/methods/paths denied; no upstream connections",
+    "syntheticTunnels": 6,
+    "deniedConnections": 54,
+    "deniedRequests": 7,
+    "fixtureResponses": 7,
+    "fixtureRequests": {
+      "https://chatgpt.com/codex/settings/usage": 5,
+      "https://chatgpt.com/c/fictional": 2
+    }
+  },
+  "limitations": [
+    "Synthetic UI fixtures only; no signed-in account or live ChatGPT compatibility tested.",
+    "OS notification delivery and browser toolbar geometry are outside this harness; badge values are inspected through the real chrome.action API."
+  ]
+}

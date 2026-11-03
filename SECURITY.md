@@ -25,3 +25,7 @@ The repository ignores environment files, key/certificate formats, credential ex
 Please use GitHub's private vulnerability reporting feature if it is enabled for the repository. Avoid filing a public issue containing credentials, cookies, account screenshots, or other sensitive information.
 
 This project is independent and is not affiliated with or endorsed by OpenAI or Google.
+
+## Synthetic browser CI (3 November 2026)
+
+Browser tests use a disposable profile and a local HTTPS fixture transport started before Chromium. The proxy connects only to its own numeric loopback address, serves two exact fixture paths, and denies other hosts, ports and routes. The test certificate is generated at runtime and deleted with the temporary profile; no certificate or private key is committed or uploaded. No personal browser profile, cookies, credentials or private conversations are accessed. The extension's runtime permissions and dependencies are unchanged.
