@@ -166,10 +166,12 @@ async function snapshot(label) {
     assert.equal(tab.url || tab.pendingUrl, usageURL);
     assert.equal(tab.active, false);
     assert.equal((await worker.evaluate(() => chrome.tabs.query({ url: 'https://chatgpt.com/codex/settings/usage' }))).length, 1);
-    monitorPage = await eventually(() => ctx.pages().find(page => page.url() === usageURL), 'monitor Playwright page');
     // Startup can precede route installation; the deny proxy makes that fail closed.
+    // Playwright may expose chrome-error://chromewebdata for that failed load,
+    // while Chrome's tab URL still records Usage. Reload by tab ID first.
     // This one bootstrap reload is test setup, not evidence of automatic refresh.
-    await monitorPage.reload();
+    await worker.evaluate(id => chrome.tabs.reload(id), monitorId);
+    monitorPage = await eventually(() => ctx.pages().find(page => page.url() === usageURL), 'monitor Playwright page');
     await monitorPage.waitForSelector('#quota-watch-host');
     await openPopup();
     await waitHero('18');
